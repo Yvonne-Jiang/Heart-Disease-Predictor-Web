@@ -1,0 +1,120 @@
+---
+title: "AN6003 Project"
+author: "Jiang Yifan"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(dirname(rstudioapi::getActiveDocumentContext()$path))
+```
+
+```{r}
+library(caTools)
+library(caret)
+library(rpart)
+library(rpart.plot)
+```
+
+```{r}
+cols <- c("age", "sex", "cp", "trestbps", "chol", "fbs", "restecg", "thalach", "exang", "oldpeak", "slope", "ca", "thal", "num")
+```
+
+```{r}
+df <- read.table("processed.cleveland.data", sep = ",", col.names=cols, na.strings = c("?"))
+```
+
+```{r}
+df$ca[which(is.na(df$ca))] <- 2
+df$thal[which(is.na(df$thal))] <- 3
+df$num[df$num > 1] <- 1
+```
+
+```{r}
+for (i in c(2, 3, 6, 7, 9, 11, 12, 13, 14)) {
+  df[, i] <- factor(df[, i])
+}
+```
+
+## Train and test
+```{r}
+set.seed(2022) 
+split <- sample.split(df$num)
+trainSet <- subset(df, split == TRUE)
+testSet <- subset(df, split == FALSE)
+```
+
+## Scaling
+```{r}
+trainSet[, c(1, 4, 5, 8, 10)] <- scale(trainSet[, c(1, 4, 5, 8, 10)])
+testSet[, c(1, 4, 5, 8, 10)] <- scale(testSet[, c(1, 4, 5, 8, 10)])
+```
+
+## Logistic Regression
+
+```{r}
+m.logistic <- glm(num ~ ., family = binomial, data = trainSet)
+summary(m.logistic)
+```
+
+```{r}
+prob <- predict(m.logistic, testSet, type = "response")
+threshold <- 0.5
+num.logistic <- ifelse(prob > threshold, 1, 0)
+confusionMatrix(testSet$num, factor(num.logistic))
+```
+
+## CART Tree
+```{r}
+getOptCp <- function(m) {
+  CVerror.cap <-
+    m$cptable[which.min(m$cptable[, "xerror"]), "xerror"] +
+    m$cptable[which.min(m$cptable[, "xerror"]), "xstd"]
+  i <- 1
+  j <- 4
+  while (m$cptable[i, j] > CVerror.cap) {
+    i <- i + 1
+  }
+  ifelse(i > 1, sqrt(m$cptable[i, 1] * m$cptable[i - 1, 1]), 1)
+}
+```
+
+```{r}
+m1.cart <- rpart(num ~ ., data = trainSet, method = "class", cp = 0)
+cp.opt <- getOptCp(m1.cart)
+m.cart <- prune(m1.cart, cp = cp.opt)
+m.cart.rules <- rpart.rules(m.cart, nn = T, cover = T)
+View(m.cart.rules)
+```
+
+```{r}
+num.cart <- predict(m.cart, type = "class", newdata = testSet)
+confusionMatrix(testSet$num, factor(num.cart))
+```
+## Random Forest
+```{r}
+m.rf <- randomForest(num ~ .,
+                     data = trainSet,
+                     na.action = na.omit,
+                     importance = T)
+
+num.rf <- predict(m.rf, newdata = testSet)
+confusionMatrix(testSet$num, factor(num.rf))
+```
+
+
+```{r}
+a <- factor(1)
+b <- 35
+paste(a, b)
+```
+
+```{r}
+summary(df)
+```
+
+
+
+## SVM
+
