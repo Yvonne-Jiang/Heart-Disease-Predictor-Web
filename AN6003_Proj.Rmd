@@ -12,9 +12,13 @@ knitr::opts_knit$set(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 ```{r}
 library(caTools)
+library(data.table)
 library(caret)
 library(rpart)
 library(rpart.plot)
+library(e1071)
+library(randomForest)
+library(neuralnet)
 ```
 
 ```{r}
@@ -47,12 +51,11 @@ testSet <- subset(df, split == FALSE)
 
 ## Scaling
 ```{r}
-trainSet[, c(1, 4, 5, 8, 10)] <- scale(trainSet[, c(1, 4, 5, 8, 10)])
-testSet[, c(1, 4, 5, 8, 10)] <- scale(testSet[, c(1, 4, 5, 8, 10)])
+# trainSet[, c(1, 4, 5, 8, 10)] <- scale(trainSet[, c(1, 4, 5, 8, 10)])
+# testSet[, c(1, 4, 5, 8, 10)] <- scale(testSet[, c(1, 4, 5, 8, 10)])
 ```
 
 ## Logistic Regression
-
 ```{r}
 m.logistic <- glm(num ~ ., family = binomial, data = trainSet)
 summary(m.logistic)
@@ -92,29 +95,78 @@ View(m.cart.rules)
 num.cart <- predict(m.cart, type = "class", newdata = testSet)
 confusionMatrix(testSet$num, factor(num.cart))
 ```
+
 ## Random Forest
 ```{r}
 m.rf <- randomForest(num ~ .,
                      data = trainSet,
-                     na.action = na.omit,
                      importance = T)
 
 num.rf <- predict(m.rf, newdata = testSet)
 confusionMatrix(testSet$num, factor(num.rf))
 ```
 
-
-```{r}
-a <- factor(1)
-b <- 35
-paste(a, b)
-```
-
-```{r}
-summary(df)
-```
-
-
-
 ## SVM
+```{r}
+m.svm <- svm(num ~ .,
+             data = trainSet)
+num.svm <- predict(m.svm, newdata = testSet)
+confusionMatrix(testSet$num, factor(num.svm))
+```
+# NN
+```{r}
+df1 <- copy(df)
+```
+
+```{r}
+for (i in c(2, 6, 9)) {
+  df1[, i] <- as.numeric(df1[, i])
+}
+```
+
+```{r}
+dummy_cp <- model.matrix(~cp, df1)
+colnames(dummy_cp)[1] <- "cp1"
+
+dummy_restecg <- model.matrix(~restecg, df1)
+colnames(dummy_restecg)[1] <- "restecg1"
+
+dummy_slope <- model.matrix(~slope, df1)
+colnames(dummy_slope)[1] <- "slope1"
+
+dummy_ca <- model.matrix(~ca, df1)
+colnames(dummy_ca)[1] <- "ca1"
+
+dummy_thal <- model.matrix(~thal, df1)
+colnames(dummy_thal)[1] <- "thal1"
+```
+
+```{r}
+df1 <- cbind(df1[, -c(3, 7, 11, 12, 13)], dummy_cp, dummy_restecg, dummy_slope, dummy_ca, dummy_thal)
+```
+
+```{r}
+set.seed(2022) 
+split1 <- sample.split(df1$num)
+trainSet1 <- subset(df1, split1 == TRUE)
+testSet1 <- subset(df1, split1 == FALSE)
+```
+
+```{r}
+set.seed(2000) 
+m.nn <- neuralnet(num == 1 ~.,
+                  data = trainSet1, hidden = 3, linear.output = FALSE)
+```
+
+```{r}
+num.nn <- predict(m.nn, newdata = testSet1)
+```
+
+```{r}
+confusionMatrix(testSet1$num, factor(round(num.nn)))
+```
+
+```{r}
+plot(m.nn)
+```
 
