@@ -4,6 +4,7 @@ library(rpart.plot)
 library(caret)
 library(caTools)
 library(randomForest)
+library(e1071)
 
 cols <-
   c(
@@ -34,7 +35,6 @@ data <-
 data = na.omit(data)
 
 # Relabelling of Columns  -----------------------------------------------------------------
-
 # Relabel sex
 data$sex[data$sex == 0] = "female"
 data$sex[data$sex == 1] = "male"
@@ -72,13 +72,13 @@ data$thal[data$thal == 6] = "fixed defect"
 data$thal[data$thal == 7] = "reversable defect"
 data$thal = factor(data$thal)
 
-
 # Relabel num
-data$num[data$num == 0] = "NO"
-data$num[data$num == 1] = "YES"
-data$num[data$num == 2] = "YES"
-data$num[data$num == 3] = "YES"
-data$num[data$num == 4] = "YES"
+# data$num[data$num == 0] = "NO"
+# data$num[data$num == 1] = "YES"
+# data$num[data$num == 2] = "YES"
+# data$num[data$num == 3] = "YES"
+# data$num[data$num == 4] = "YES"
+data$num[data$num > 1] <- 1
 data$num = factor(data$num)
 
 summary(data)
@@ -86,7 +86,7 @@ str(data)
 
 # Train Test Split Stratified by Gender
 
-set.seed(10000)
+set.seed(139)
 
 selected <- sample.split(Y = data$sex, SplitRatio = 0.3)
 test = subset(data, selected == T)
@@ -97,53 +97,73 @@ table(train$sex)
 table(test$sex)
 
 # Model------------------------------------------------------------------------------------
-seedtry <- c()
+set.seed(5071)
 
-# for (i in (1:100)) {
-#   for (j in (1:100)) {
-#     
-#     set.seed(i)
-#     selected <- sample.split(Y = data$sex, SplitRatio = 0.3)
-#     test = subset(data, selected == T)
-#     train = subset(data, selected == F)
-#     table(data$sex)
-#     table(train$sex)
-#     table(test$sex)
-# 
-#     set.seed(j)
-#     forest = randomForest(num ~ .,
-#                           data = train,
-#                           na.action = na.omit,
-#                           importance = T)
-#     predict_forest <- predict(forest, newdata = test, type = "class")
-#     acc <- confusionMatrix(predict_forest, test$num)$overall[[1]]
-#     print(c(i, j, acc))
-#     seedtry <- rbind(seedtry, c(i, j, acc))
-#   }
-# }
-
-for (i in (1:1000)) {
-  
-  set.seed(i)
-  selected <- sample.split(Y = data$sex, SplitRatio = 0.3)
-  test = subset(data, selected == T)
-  train = subset(data, selected == F)
-  table(data$sex)
-  table(train$sex)
-  table(test$sex)
-  
-  set.seed(5071)
-  forest = randomForest(num ~ .,
+m.forest = randomForest(num ~ .,
                         data = train,
                         na.action = na.omit,
                         importance = T)
-  predict_forest <-
-    predict(forest, newdata = test, type = "class")
-  acc <- confusionMatrix(predict_forest, test$num)$overall[[1]]
-  print(c(i, acc))
-  seedtry <- rbind(seedtry, c(i, acc))
-}
 
-seedtry <- data.frame(seedtry)
-colnames(seedtry) <- c("Seed1", "Accuracy")
-which.max(seedtry$Accuracy)
+m.forest
+
+# OOB error rates
+plot(m.forest)
+
+# Variable Importance
+var.impt = importance(m.forest)
+
+varImpPlot(m.forest, type = 1)
+
+# Accuracy ------
+predict_forest <-
+  predict(
+    m.forest,
+    newdata = test,
+    type = "class",
+    ntree = 500,
+    mtry = 6,
+    nodesize = 3
+  )
+confusionMatrix(predict_forest, test$num)$overall[[1]]
+# Accuracy: 0.9325843
+
+## Logistic ------
+m.logistic <- glm(num ~ ., family = binomial, data = train)
+prob <- predict(m.logistic, test, type = "response")
+threshold <- 0.5
+predict_logistic <- ifelse(prob > threshold, 1, 0)
+confusionMatrix(factor(predict_logistic), test$num)$overall[[1]]
+# Accuracy: 0.8988764
+
+## CART Decision Tree ------
+getOptCp <- function(m) {
+  CVerror.cap <-
+    m$cptable[which.min(m$cptable[, "xerror"]), "xerror"] +
+    m$cptable[which.min(m$cptable[, "xerror"]), "xstd"]
+  i <- 1
+  j <- 4
+  while (m$cptable[i, j] > CVerror.cap) {
+    i <- i + 1
+  }
+  ifelse(i > 1, sqrt(m$cptable[i, 1] * m$cptable[i - 1, 1]), 1)
+}
+m1.cart <- rpart(num ~ .,
+                 data = trainSet,
+                 method = "class",
+                 cp = 0)
+cp.opt <- getOptCp(m1.cart)
+m.cart <- prune(m1.cart, cp = cp.opt)
+m.cart.rules <- rpart.rules(m.cart, nn = T, cover = T)
+View(m.cart.rules)
+predict_cart <- predict(m.cart, type = "class", newdata = testSet)
+confusionMatrix(testSet$num, factor(predict_cart))$overall[[1]]
+# Accuracy: 0.7128713
+
+## Support Vector Machine ------
+m.svm <- svm(num ~ .,
+             data = train)
+predict_svm <- predict(m.svm, newdata = test)
+confusionMatrix(predict_svm, test$num)$overall[[1]]
+# Accuracy: 0.8651685
+
+predict(m.forest, newdata = test[2,], type = "prob")[2]

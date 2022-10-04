@@ -33,7 +33,7 @@ for (i in c(2, 3, 6, 7, 9, 11, 12, 13, 14)) {
   df[, i] <- factor(df[, i])
 }
 
-set.seed(2022)
+set.seed(5071)
 split <- sample.split(df$num)
 trainSet <- subset(df, split == TRUE)
 testSet <- subset(df, split == FALSE)
