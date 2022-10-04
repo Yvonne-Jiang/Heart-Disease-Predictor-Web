@@ -1,6 +1,6 @@
 library(shiny)
 library(shinydashboard)
-source('Logisitic.R')
+source('AN6003_Team5_Models.R')
 
 # Header -------
 header <-
@@ -254,9 +254,11 @@ server <- function(input, output) {
         "oldpeak" = oldpeak,
         "slope" = slope,
         "ca" = ca,
-        "thal" = thal
+        "thal" = thal,
+        "num" = factor(0) # just for the format of df, do not affect the result.
       )
-    predict(m.logistic, newData, type = "response")[[1]]
+    # predict(m.logistic, newData, type = "response")[[1]]
+    getMyRfProb(newData)
   })
   
   # observeEvent(input$pred, {

@@ -34,57 +34,63 @@ data <-
 
 data = na.omit(data)
 
-# Relabelling of Columns  -----------------------------------------------------------------
-# Relabel sex
-data$sex[data$sex == 0] = "female"
-data$sex[data$sex == 1] = "male"
-data$sex = factor(data$sex)
-
-# Relabel cp
-data$cp[data$cp == 1] = "typical angina"
-data$cp[data$cp == 2] = "atypical angina"
-data$cp[data$cp == 3] = "non-anginal pain"
-data$cp[data$cp == 4] = "asymptomatic"
-data$cp = factor(data$cp)
-
-# Relabel fbs
-data$fbs[data$fbs == 0] = "false"
-data$fbs[data$fbs == 1] = "true"
-data$fbs = factor(data$fbs)
-
-# Relabel exang
-data$exang[data$exang == 0] = "no"
-data$exang[data$exang == 1] = "yes"
-data$exang = factor(data$exang)
-
-# Relabel slope
-data$slope[data$slope == 1] = "upsloping"
-data$slope[data$slope == 2] = "flat"
-data$slope[data$slope == 3] = "downsloping"
-data$slope = factor(data$slope)
-
-# Relabel ca
-data$ca = factor(data$ca)
-
-# Relabel thal
-data$thal[data$thal == 3] = "normal"
-data$thal[data$thal == 6] = "fixed defect"
-data$thal[data$thal == 7] = "reversable defect"
-data$thal = factor(data$thal)
-
-# Relabel num
-# data$num[data$num == 0] = "NO"
-# data$num[data$num == 1] = "YES"
-# data$num[data$num == 2] = "YES"
-# data$num[data$num == 3] = "YES"
-# data$num[data$num == 4] = "YES"
 data$num[data$num > 1] <- 1
-data$num = factor(data$num)
+# Relabelling of Columns  -----------------------------------------------------------------
+# # Relabel sex
+# data$sex[data$sex == 0] = "female"
+# data$sex[data$sex == 1] = "male"
+# data$sex = factor(data$sex)
+# 
+# # Relabel cp
+# data$cp[data$cp == 1] = "typical angina"
+# data$cp[data$cp == 2] = "atypical angina"
+# data$cp[data$cp == 3] = "non-anginal pain"
+# data$cp[data$cp == 4] = "asymptomatic"
+# data$cp = factor(data$cp)
+# 
+# # Relabel fbs
+# data$fbs[data$fbs == 0] = "false"
+# data$fbs[data$fbs == 1] = "true"
+# data$fbs = factor(data$fbs)
+# 
+# # Relabel exang
+# data$exang[data$exang == 0] = "no"
+# data$exang[data$exang == 1] = "yes"
+# data$exang = factor(data$exang)
+# 
+# # Relabel slope
+# data$slope[data$slope == 1] = "upsloping"
+# data$slope[data$slope == 2] = "flat"
+# data$slope[data$slope == 3] = "downsloping"
+# data$slope = factor(data$slope)
+# 
+# # Relabel ca
+# data$ca = factor(data$ca)
+# 
+# # Relabel thal
+# data$thal[data$thal == 3] = "normal"
+# data$thal[data$thal == 6] = "fixed defect"
+# data$thal[data$thal == 7] = "reversable defect"
+# data$thal = factor(data$thal)
+# 
+# # Relabel num
+# # data$num[data$num == 0] = "NO"
+# # data$num[data$num == 1] = "YES"
+# # data$num[data$num == 2] = "YES"
+# # data$num[data$num == 3] = "YES"
+# # data$num[data$num == 4] = "YES"
+# data$num[data$num > 1] <- 1
+# data$num = factor(data$num)
 
-summary(data)
-str(data)
+# summary(data)
+# str(data)
 
-# Train Test Split Stratified by Gender
+# Factor  ----------
+for (i in c(2, 3, 6, 7, 9, 11, 12, 13, 14)) {
+  data[, i] <- factor(data[, i])
+}
+
+# Train Test Split Stratified by Gender------
 
 set.seed(139)
 
@@ -107,12 +113,12 @@ m.forest = randomForest(num ~ .,
 m.forest
 
 # OOB error rates
-plot(m.forest)
+# plot(m.forest)
 
 # Variable Importance
 var.impt = importance(m.forest)
 
-varImpPlot(m.forest, type = 1)
+# varImpPlot(m.forest, type = 1)
 
 # Accuracy ------
 predict_forest <-
@@ -133,7 +139,7 @@ prob <- predict(m.logistic, test, type = "response")
 threshold <- 0.5
 predict_logistic <- ifelse(prob > threshold, 1, 0)
 confusionMatrix(factor(predict_logistic), test$num)$overall[[1]]
-# Accuracy: 0.8988764
+# Accuracy: 0.9213483
 
 ## CART Decision Tree ------
 getOptCp <- function(m) {
@@ -154,7 +160,7 @@ m1.cart <- rpart(num ~ .,
 cp.opt <- getOptCp(m1.cart)
 m.cart <- prune(m1.cart, cp = cp.opt)
 m.cart.rules <- rpart.rules(m.cart, nn = T, cover = T)
-View(m.cart.rules)
+# View(m.cart.rules)
 predict_cart <- predict(m.cart, type = "class", newdata = testSet)
 confusionMatrix(testSet$num, factor(predict_cart))$overall[[1]]
 # Accuracy: 0.7128713
@@ -164,6 +170,23 @@ m.svm <- svm(num ~ .,
              data = train)
 predict_svm <- predict(m.svm, newdata = test)
 confusionMatrix(predict_svm, test$num)$overall[[1]]
-# Accuracy: 0.8651685
+# Accuracy: 0.8988764
 
-predict(m.forest, newdata = test[2,], type = "prob")[2]
+# for (p in names(data)) { 
+#   if (class(data[[p]]) == "factor") { 
+#     levels(newData[[p]]) <- levels(data[[p]]) 
+#   } 
+# }
+# 
+# predict(m.forest, newdata = newData, type = "prob")[2]
+# predict(m.logistic, newdata = newData, type = "response")[[1]]
+
+getMyRfProb <- function(newData) {
+  for (p in names(data)) {
+    if (class(data[[p]]) == "factor") {
+      levels(newData[[p]]) <- levels(data[[p]])
+    }
+  }
+  predict(m.forest, newdata = newData, type = "prob")[2]
+}
+
