@@ -1,8 +1,22 @@
 library(shiny)
 library(shinydashboard)
 source('Logisitic.R')
+
 # Header -------
-header <- dashboardHeader(title = "Heart Failure Predictor")
+header <-
+  dashboardHeader(title = "Heart Failure Predictor", titleWidth = 320)
+
+# Sidebar ------
+sidebar <- dashboardSidebar(width = 320, sidebarMenu(
+  menuItem(
+    "Prediction",
+    tabName = "Prediction",
+    icon = icon("magnifying-glass")
+  ),
+  menuItem("Instruction",
+           tabName = "Instruction",
+           icon = icon("book"))
+))
 
 # Body ------
 Body1 <- fluidRow(
@@ -69,9 +83,8 @@ Body2 <- fluidRow(# trestbps
            choices = list("< 120 mg/dl" = 0, "> 120 mg/dl" = 1)
          )))
 
-
-
-Body3 <- fluidRow(# restecg
+Body3 <- fluidRow(
+  # restecg
   column(
     4,
     selectInput(
@@ -108,7 +121,8 @@ Body3 <- fluidRow(# restecg
 
 
 
-Body4 <- fluidRow(# oldpeak
+Body4 <- fluidRow(
+  # oldpeak
   column(4,
          numericInput(
            "oldpeak",
@@ -140,7 +154,8 @@ Body4 <- fluidRow(# oldpeak
            choices = c(0, 1, 2, 3)
          )))
 
-Body5 <- fluidRow(# thal
+Body5 <- fluidRow(
+  # thal
   column(
     4,
     selectInput(
@@ -156,24 +171,55 @@ Body5 <- fluidRow(# thal
     )
   ))
 
-Body6 <- fluidRow(
-  column(
-    10,
-    br(),
-    actionButton("pred", "Predict"),
-    br(),
-    br(),
-    textOutput("Result"),
-  )
-)
+Body6 <- fluidRow(column(
+  10,
+  br(),
+  actionButton("pred", "Predict"),
+  br(),
+  br(),
+  textOutput("Result"),
+  tags$head(tags$style("#Result{color: black;
+                                 font-size: 18px;
+            font-style: bold;
+            }"))
+))
 
-ui <- fluidPage(titlePanel("Heart Failure Predictor"),
-                Body1,
-                Body2,
-                Body3,
-                Body4,
-                Body5,
-                Body6)
+Instruction <- fluidRow(column(
+  col = 2,
+  width = 12,
+  offset = 2,
+  box(
+    title = "Instructions For the Web App",
+    solidHeader = T,
+    strong("Model..."),
+    p("after the doc...")
+  )
+))
+
+body <-
+  dashboardBody(tabItems(
+    tabItem(tabName = "Prediction", Body1,
+            Body2,
+            Body3,
+            Body4,
+            Body5,
+            Body6),
+    tabItem(tabName = "Instruction", Instruction)
+  ))
+
+ui <-
+  dashboardPage(title = 'Heart Failure Predictor',
+                header,
+                sidebar,
+                body)
+
+# ui <- fluidPage(titlePanel("Heart Failure Predictor"),
+#                 Body1,
+#                 Body2,
+#                 Body3,
+#                 Body4,
+#                 Body5,
+#                 Body6)
 
 # Server -----
 
@@ -219,14 +265,16 @@ server <- function(input, output) {
   #   })
   # })
   
-  observeEvent(input$pred, {output$Result <- renderText({
-    str1 <-
-      paste(
-        "Based on your current reports, you will have a",
-        round(pred(), 4) * 100,
-        "% probability of having a heart disease.")
-    str1
-  })
+  observeEvent(input$pred, {
+    output$Result <- renderText({
+      str1 <-
+        paste(
+          "Based on your current reports, you will have a",
+          round(pred(), 4) * 100,
+          "% probability of having a heart disease."
+        )
+      str1
+    })
   })
 }
 

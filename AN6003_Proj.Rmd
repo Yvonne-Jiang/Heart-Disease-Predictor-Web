@@ -58,7 +58,6 @@ testSet <- subset(df, split == FALSE)
 ## Logistic Regression
 ```{r}
 m.logistic <- glm(num ~ ., family = binomial, data = trainSet)
-summary(m.logistic)
 ```
 
 ```{r}
