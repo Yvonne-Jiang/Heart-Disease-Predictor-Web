@@ -239,7 +239,6 @@ server <- function(input, output) {
     slope <- as.factor(input$slope)
     ca <- as.factor(input$ca)
     thal <- as.factor(input$thal)
-    
     newData <-
       data.frame(
         "age" = age,
