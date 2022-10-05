@@ -199,6 +199,9 @@ getMyRfProb <- function(nd) {
   predict(m.forest, newdata = nd, type = "prob")[2]
 }
 
+saveRDS(getMyRfProb, "getMyRfProb.rds")
+# getMyRfProb <- readRDS("getMyRfProb.rds")
+
 # getMyRfProb(newData)
 # predict(m.forest, newdata = test[1,], type = "prob")
 # 
