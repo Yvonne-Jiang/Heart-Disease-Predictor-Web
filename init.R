@@ -1,11 +1,5 @@
 helpers.installPackages(
-  "shiny",
-  "data.table",
-  "rpart",
-  "rpart.plot",
   "caret",
-  "caTools",
   "randomForest",
-  "e1071",
   "shinydashboard"
 )
