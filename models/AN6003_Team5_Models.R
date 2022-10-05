@@ -154,15 +154,15 @@ getOptCp <- function(m) {
   ifelse(i > 1, sqrt(m$cptable[i, 1] * m$cptable[i - 1, 1]), 1)
 }
 m1.cart <- rpart(num ~ .,
-                 data = trainSet,
+                 data = train,
                  method = "class",
                  cp = 0)
 cp.opt <- getOptCp(m1.cart)
 m.cart <- prune(m1.cart, cp = cp.opt)
 m.cart.rules <- rpart.rules(m.cart, nn = T, cover = T)
 # View(m.cart.rules)
-predict_cart <- predict(m.cart, type = "class", newdata = testSet)
-confusionMatrix(testSet$num, factor(predict_cart))$overall[[1]]
+predict_cart <- predict(m.cart, type = "class", newdata = test)
+confusionMatrix(test$num, factor(predict_cart))$overall[[1]]
 # Accuracy: 0.7128713
 
 ## Support Vector Machine ------
@@ -172,37 +172,38 @@ predict_svm <- predict(m.svm, newdata = test)
 confusionMatrix(predict_svm, test$num)$overall[[1]]
 # Accuracy: 0.8988764
 
-# newData <-
-#   data.frame(
-#     "age" = 37,
-#     "sex" = factor(1),
-#     "cp" = factor(3),
-#     "trestbps" = 130,
-#     "chol" = 250,
-#     "fbs" = factor(0),
-#     "restecg" = factor(0),
-#     "thalach" = 187,
-#     "exang" = factor(0),
-#     "oldpeak" = 3.5,
-#     "slope" = factor(3),
-#     "ca" = factor(0),
-#     "thal" = factor(3),
-#     "num" = factor(0)
-#   )
+newData <-
+  data.frame(
+    "age" = 37,
+    "sex" = factor(1),
+    "cp" = factor(3),
+    "trestbps" = 130,
+    "chol" = 250,
+    "fbs" = factor(0),
+    "restecg" = factor(0),
+    "thalach" = 187,
+    "exang" = factor(0),
+    "oldpeak" = 3.5,
+    "slope" = factor(3),
+    "ca" = factor(0),
+    "thal" = factor(3),
+    "num" = factor(0)
+  )
 # 
 # predict(m.forest, newdata = newData, type = "prob")[2]
 # predict(m.logistic, newdata = newData, type = "response")[[1]]
 
 getMyRfProb <- function(nd) {
-  nd <- rbind(data[1,] , nd)
+  nd <- rbind(data[1, ], nd)
   nd <- nd[-1, ]
   predict(m.forest, newdata = nd, type = "prob")[2]
 }
 
 saveRDS(getMyRfProb, "getMyRfProb.rds")
-# getMyRfProb <- readRDS("getMyRfProb.rds")
 
-# getMyRfProb(newData)
+getProb <- readRDS("getMyRfProb.rds")
+
+getProb(newData)
 # predict(m.forest, newdata = test[1,], type = "prob")
 # 
 # getMyRfProb(test[1,])

@@ -3,7 +3,7 @@ library(shinydashboard)
 library(randomForest)
 library(caret)
 
-getMyRfProb <- readRDS("getMyRfProb.rds")
+source("rf.R")
 
 # Header -------
 header <-
