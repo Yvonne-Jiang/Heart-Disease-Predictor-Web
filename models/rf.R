@@ -88,17 +88,49 @@ confusionMatrix(predict_forest, test$num)$overall[[1]]
 # predict(m.logistic, newdata = newData, type = "response")[[1]]
 
 getMyRfProb <- function(nd) {
-  nd <- rbind(data[1, ], nd)
-  nd <- nd[-1, ]
+  cols <-
+    c(
+      "age",
+      "sex",
+      "cp",
+      "trestbps",
+      "chol",
+      "fbs",
+      "restecg",
+      "thalach",
+      "exang",
+      "oldpeak",
+      "slope",
+      "ca",
+      "thal",
+      "num"
+    )
+  
+  data <-
+    read.table(
+      "processed.cleveland.data",
+      sep = ",",
+      col.names = cols,
+      na.strings = c("?")
+    )
+  
+  data = na.omit(data)
+  data$num[data$num > 1] <- 1
+  for (i in c(2, 3, 6, 7, 9, 11, 12, 13, 14)) {
+    data[, i] <- factor(data[, i])
+  }
+  nd <- rbind(data[1,], nd)
+  nd <- nd[-1,]
+  m.forest = randomForest(num ~ .,
+                          data = data)
   predict(m.forest, newdata = nd, type = "prob")[2]
 }
 
-# saveRDS(getMyRfProb, "getMyRfProb.rds")
+saveRDS(getMyRfProb, "getMyRfProb.rds")
 #
 # getProb <- readRDS("getMyRfProb.rds")
 
 # getProb(newData)
 # predict(m.forest, newdata = test[1,], type = "prob")
-#
+
 # getMyRfProb(test[1,])
-# levels(data[["slope"]])

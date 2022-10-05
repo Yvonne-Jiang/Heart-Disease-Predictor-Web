@@ -131,7 +131,7 @@ predict_forest <-
     nodesize = 3
   )
 confusionMatrix(predict_forest, test$num)$overall[[1]]
-# Accuracy: 0.9325843
+# Accuracy: 0.9213483
 
 ## Logistic ------
 m.logistic <- glm(num ~ ., family = binomial, data = train)
@@ -139,7 +139,7 @@ prob <- predict(m.logistic, test, type = "response")
 threshold <- 0.5
 predict_logistic <- ifelse(prob > threshold, 1, 0)
 confusionMatrix(factor(predict_logistic), test$num)$overall[[1]]
-# Accuracy: 0.9213483
+# Accuracy: 0.8988764
 
 ## CART Decision Tree ------
 getOptCp <- function(m) {
@@ -163,7 +163,7 @@ m.cart.rules <- rpart.rules(m.cart, nn = T, cover = T)
 # View(m.cart.rules)
 predict_cart <- predict(m.cart, type = "class", newdata = test)
 confusionMatrix(test$num, factor(predict_cart))$overall[[1]]
-# Accuracy: 0.7128713
+# Accuracy: 0.7865169
 
 ## Support Vector Machine ------
 m.svm <- svm(num ~ .,
@@ -172,39 +172,26 @@ predict_svm <- predict(m.svm, newdata = test)
 confusionMatrix(predict_svm, test$num)$overall[[1]]
 # Accuracy: 0.8988764
 
-newData <-
-  data.frame(
-    "age" = 37,
-    "sex" = factor(1),
-    "cp" = factor(3),
-    "trestbps" = 130,
-    "chol" = 250,
-    "fbs" = factor(0),
-    "restecg" = factor(0),
-    "thalach" = 187,
-    "exang" = factor(0),
-    "oldpeak" = 3.5,
-    "slope" = factor(3),
-    "ca" = factor(0),
-    "thal" = factor(3),
-    "num" = factor(0)
-  )
-# 
-# predict(m.forest, newdata = newData, type = "prob")[2]
-# predict(m.logistic, newdata = newData, type = "response")[[1]]
+# newData <-
+#   data.frame(
+#     "age" = 37,
+#     "sex" = factor(1),
+#     "cp" = factor(3),
+#     "trestbps" = 130,
+#     "chol" = 250,
+#     "fbs" = factor(0),
+#     "restecg" = factor(0),
+#     "thalach" = 187,
+#     "exang" = factor(0),
+#     "oldpeak" = 3.5,
+#     "slope" = factor(3),
+#     "ca" = factor(0),
+#     "thal" = factor(3),
+#     "num" = factor(0)
+#   )
 
 getMyRfProb <- function(nd) {
   nd <- rbind(data[1, ], nd)
   nd <- nd[-1, ]
   predict(m.forest, newdata = nd, type = "prob")[2]
 }
-
-saveRDS(getMyRfProb, "getMyRfProb.rds")
-
-getProb <- readRDS("getMyRfProb.rds")
-
-getProb(newData)
-# predict(m.forest, newdata = test[1,], type = "prob")
-# 
-# getMyRfProb(test[1,])
-# levels(data[["slope"]])
