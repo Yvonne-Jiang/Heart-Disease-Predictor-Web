@@ -16,7 +16,7 @@ sidebar <- dashboardSidebar(width = 320, sidebarMenu(
     tabName = "Prediction",
     icon = icon("magnifying-glass")
   ),
-  menuItem("Instruction",
+  menuItem("About this App",
            tabName = "Instruction",
            icon = icon("book"))
 ))
@@ -192,7 +192,7 @@ Instruction <- fluidRow(column(
   width = 12,
   offset = 2,
   box(
-    title = "Instructions For the Web App",
+    title = "About the App",
     solidHeader = T,
     strong("Model..."),
     p("after the doc...")
