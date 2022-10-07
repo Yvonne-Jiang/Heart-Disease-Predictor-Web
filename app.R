@@ -7,7 +7,7 @@ getMyRfProb <- readRDS("getMyRfProb.rds")
 
 # Header -------
 header <-
-  dashboardHeader(title = "Heart Failure Predictor", titleWidth = 320)
+  dashboardHeader(title = "Heart Disease Predictor", titleWidth = 320)
 
 # Sidebar ------
 sidebar <- dashboardSidebar(width = 320, sidebarMenu(
@@ -198,7 +198,7 @@ Instruction <- fluidRow(column(
       "Cardiovascular disease is a significant cause of death in Singapore. Cardiovascular disease accounts for 32% of all deaths in 2021; Based on Sing Health's annual report 2020/2021, caseload for specialist outpatient clinic attendances alone is high at 131,761 for year 2021. ([https://www.nhcs.com.sg/about-us/corporate-profile/key-figure]). According to our calculations, this translates to a medical staff to patient ratio of approximately 1:103."
     ),
     p("Predicting heart disease is a daunting task for medical institutions. Given the high case load and limited resources, it is likely that the current way of diagnosis in NHCS is that doctors manually diagnose patients on a case-by-case basis. However, in recent years, artificial intelligence and machine learning have made significant breakthroughs in cardiology research. Furthermore, NHCS already possesses a large repository of patient medical data that we can turn into useful information through machine learning models, enabling hospitals to make informed clinical decisions."),
-    p("Therefore, we want to develop a web application that would help NHCS to quickly identify patients at higher risk of heart failure among those who visit the Centre for general cardiovascular problems. This application will draw on patient’s health data to help to predict the risk of heart failure, and thus help NHCS prioritise the treatment of these high-risk patients, thereby improving clinical outcomes and resource allocation."),
+    p("Therefore, we want to develop a web application that would help NHCS to quickly identify patients at higher risk of heart disease among those who visit the Centre for general cardiovascular problems. This application will draw on patient’s health data to help to predict the risk of heart disease, and thus help NHCS prioritise the treatment of these high-risk patients, thereby improving clinical outcomes and resource allocation."),
     strong("Technical Details"),
     p("The prediction function is realized by applying a random forest model, which performs the best among the various machine learning algorithms. The web application is deployed the application using R’s package Shiny and Heroku, which is a cloud platform.")
     ),
@@ -217,12 +217,12 @@ body <-
   ))
 
 ui <-
-  dashboardPage(title = 'Heart Failure Predictor',
+  dashboardPage(title = 'Heart Disease Predictor',
                 header,
                 sidebar,
                 body)
 
-# ui <- fluidPage(titlePanel("Heart Failure Predictor"),
+# ui <- fluidPage(titlePanel("Heart Disease Predictor"),
 #                 Body1,
 #                 Body2,
 #                 Body3,
