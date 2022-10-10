@@ -279,7 +279,7 @@ server <- function(input, output) {
     output$Result <- renderText({
       str1 <-
         paste(
-          "Based on your current reports, you will have a",
+          "Based on the current reports, the patient will have a",
           round(pred(), 4) * 100,
           "% probability of having a heart disease."
         )
